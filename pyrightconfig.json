@@ -1,0 +1,12 @@
+{
+  "typeCheckingMode": "standard",
+  "pythonVersion": "3.11",
+  "analysis": {
+    "diagnosticMode": "openFilesOnly",
+    "useLibraryCodeForTypes": true,
+    "reportMissingTypeStubs": false,
+    "reportUnknownMemberType": false,
+    "reportUnknownVariableType": false,
+    "reportUnknownArgumentType": false
+  }
+}
