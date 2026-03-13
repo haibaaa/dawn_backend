@@ -12,7 +12,7 @@ load_dotenv()
 app = FastAPI()
 
 
-# 1. Admin Client (Uses API Key) - For creating users
+# admin client (uses api key) - for creating users
 def get_admin_client():
     return (
         Client()
@@ -22,7 +22,7 @@ def get_admin_client():
     )
 
 
-# 2. Public Client (No API Key) - For logging in
+# public client (no api key) - for logging in
 def get_public_client():
     return (
         Client()
@@ -48,7 +48,7 @@ async def signup(user: UserAuth):
             password=user.password,
         )
         return {
-            "message": "Success!",
+            "message": "success!",
             "user_id": result["$id"],
         }
     except Exception as e:
@@ -63,12 +63,12 @@ async def login(user: UserAuth):
     client = get_admin_client()  # Needs API Key to create JWT on behalf of user
     account = Account(client)
     try:
-        # Step A: Authenticate the user
+        # authenticate the user
         account.create_email_password_session(
             user.email,
             user.password,
         )
-        # Step B: Generate the 15-minute token
+        # generate a token (15 min default)
         jwt_response = account.create_jwt()
 
         return {
