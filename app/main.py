@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.core.database import engine, Base
-from app.routes import auth, flashcard, resources
+from app.routes import auth, flashcard, resources, quiz
 
 # Create tables in Supabase (Postgres)
 Base.metadata.create_all(bind=engine)
