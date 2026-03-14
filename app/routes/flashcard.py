@@ -6,7 +6,7 @@ from app.schemas import FlashcardResponse
 router = APIRouter()
 
 
-@router.post("/generate", response_model=FlashcardResponse)
+@router.post("/generate", response_model=list[dict])
 async def generate_flashcards(file: UploadFile = File(...)):
     try:
         content_type = file.content_type
@@ -28,7 +28,6 @@ async def generate_flashcards(file: UploadFile = File(...)):
 
             prompt = f"extract key concepts from the following text and generate flashcards. text: {extracted_text}"
             response = llm.invoke(prompt)
-            return response
 
         elif content_type in ["image/jpeg", "image/png", "image/jpg", "image/webp"]:
             # Process Image to Base64
@@ -47,12 +46,20 @@ async def generate_flashcards(file: UploadFile = File(...)):
                 }
             ]
             response = llm.invoke(messages)
-            return response
 
         else:
             raise HTTPException(
                 status_code=400, detail=f"unsupported file type: {content_type}"
             )
+
+        flashcard_items = []
+        if response and hasattr(response, "flashcards"):
+            for f in response.flashcards:
+                f_dict = f.model_dump()
+                f_dict["type"] = "flashcard"
+                flashcard_items.append(f_dict)
+
+        return flashcard_items
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
