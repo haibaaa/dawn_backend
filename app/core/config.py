@@ -12,6 +12,7 @@ class Settings:
     SUPABASE_JWT_SECRET: str = os.getenv("SUPABASE_JWT_SECRET")
     # From Supabase Dashboard > Settings > Database (Transaction Pooler string)
     DATABASE_URL: str = os.getenv("DATABASE_URL")
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
 
 
 settings = Settings()
