@@ -1,52 +1,41 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, EmailStr
-from appwrite.services.users import Users
-from appwrite.services.account import Account
-from appwrite.id import ID
-from app.config import get_admin_client, get_base_client
+from supabase import create_client, Client
+from app.core.config import settings
+from app.schemas.schemas import UserCreate
 
 router = APIRouter()
-
-
-# models
-class SignupRequest(BaseModel):
-    email: EmailStr
-    password: str
-
-
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
+supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_ANON_KEY)
 
 
 @router.post("/signup")
-async def signup(user: SignupRequest):
-    """Creates a new student account in Appwrite."""
-    client = get_admin_client()
-    users = Users(client)
-    try:
-        result = users.create(
-            user_id=ID.unique(),
-            email=user.email,
-            password=user.password,
-        )
-        return {"status": "User created", "user_id": result["$id"]}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+async def signup(
+    user_data: UserCreate,
+):  # FastAPI now knows to look in the Request Body
+    # Access them via user_data.email and user_data.password
+    response = supabase.auth.sign_up(
+        {
+            "email": user_data.email,
+            "password": user_data.password,
+        }
+    )
+    return {
+        "message": "success! check your email for confirmation.",
+        "user_id": response.user.id,
+    }
 
 
 @router.post("/login")
-async def login(user: LoginRequest):
-    """Logs in and returns a JWT for subsequent requests."""
-    client = get_base_client()  # Sessions are created on the base client
-    account = Account(client)
+async def login(email: str, password: str):
     try:
-        # 1. Create the session
-        account.create_email_password_session(user.email, user.password)
-
-        # 2. Generate JWT
-        jwt_res = account.create_jwt()
-
-        return {"token": jwt_res["jwt"], "status": "Logged In", "type": "Bearer"}
+        response = supabase.auth.sign_in_with_password(
+            {
+                "email": email,
+                "password": password,
+            }
+        )
+        return {
+            "access_token": response.session.access_token,
+            "token_type": "bearer",
+        }
     except Exception as e:
-        raise HTTPException(status_code=401, detail="Invalid credentials or " + str(e))
+        raise HTTPException(status_code=400, detail=str(e))
