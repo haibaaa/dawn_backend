@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from datetime import datetime, date
 from enum import Enum
+from typing import Literal
 
 
 # --- ENUMS ---
@@ -120,17 +121,19 @@ class Flashcard(BaseModel):
 class FlashcardResponse(BaseModel):
     flashcards: list[Flashcard]
 
+
 # ---- Quiz Schema ----
 class QuizQuestion(BaseModel):
-    type: Literal["quiz"] # Hardcoded type for the UI to read
+    type: Literal["quiz"]  # Hardcoded type for the UI to read
     question: str
     correct_answer: str
-    options: List[str] # List of 4 multiple choice options (including correct one)
-    explanation: str # Why the answer is correct
+    options: list[str]  # List of 4 multiple choice options (including correct one)
+    explanation: str  # Why the answer is correct
+
 
 class QuizResponse(BaseModel):
-    title: str # e.g., "Quiz based on Molecular_Bio_Lec2.pdf"
-    questions: List[QuizQuestion]
+    title: str  # e.g., "Quiz based on Molecular_Bio_Lec2.pdf"
+    questions: list[QuizQuestion]
 
 
 # --- RESOURCE SCHEMAS ---
