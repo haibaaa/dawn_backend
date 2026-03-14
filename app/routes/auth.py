@@ -18,6 +18,12 @@ async def signup(
             "password": user_data.password,
         }
     )
+    if response.user is None:
+        raise HTTPException(
+            status_code=400,
+            detail="signup failed. the user might already exist or the request was invalid.",
+        )
+
     return {
         "message": "success! check your email for confirmation.",
         "user_id": response.user.id,
@@ -25,14 +31,21 @@ async def signup(
 
 
 @router.post("/login")
-async def login(email: str, password: str):
+async def login(
+    user_data: UserCreate,
+):
     try:
         response = supabase.auth.sign_in_with_password(
             {
-                "email": email,
-                "password": password,
+                "email": user_data.email,
+                "password": user_data.password,
             }
         )
+        if response.session is None:
+            raise HTTPException(
+                status_code=400,
+                detail="wrong credentials",
+            )
         return {
             "access_token": response.session.access_token,
             "token_type": "bearer",

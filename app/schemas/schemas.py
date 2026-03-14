@@ -109,3 +109,29 @@ class EnrollmentBase(BaseModel):
 class EnrollmentResponse(EnrollmentBase):
     user_id: str
     model_config = ConfigDict(from_attributes=True)
+
+
+# --- FLASHCARD SCHEMAS ---
+class Flashcard(BaseModel):
+    question: str
+    answer: str
+
+
+class FlashcardResponse(BaseModel):
+    flashcards: list[Flashcard]
+
+
+# --- RESOURCE SCHEMAS ---
+class ResourceCreate(BaseModel):
+    title: str
+    course_id: int | None = None
+    tags: str  # We'll receive tags as a comma-separated string from the Form
+
+
+class ResourceResponse(BaseModel):
+    id: int
+    title: str
+    file_url: str
+    tags: list[str]
+    user_id: str
+    model_config = ConfigDict(from_attributes=True)

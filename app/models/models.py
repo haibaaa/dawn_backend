@@ -12,8 +12,23 @@ from sqlalchemy import (
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.dialects.postgresql import ARRAY
 from app.core.database import Base
 from app.schemas.schemas import Status  # Ensure this path is correct
+
+
+class Resource(Base):
+    __tablename__ = "resources"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    file_url = Column(String, nullable=False)  # The link to Supabase Storage
+    tags = Column(ARRAY(String), default=[])  # Postgres Array for easy tagging
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    course_id = Column(
+        Integer, ForeignKey("courses.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 class Enrollment(Base):

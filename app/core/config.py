@@ -13,6 +13,8 @@ class Settings:
     # From Supabase Dashboard > Settings > Database (Transaction Pooler string)
     DATABASE_URL: str = os.getenv("DATABASE_URL")
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
+    SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    SUPABASE_BUCKET_URL: str = os.getenv("SUPABASE_BUCKET_URL")
 
 
 settings = Settings()

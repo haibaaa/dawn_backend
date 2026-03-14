@@ -1,29 +1,13 @@
 from fastapi import APIRouter, UploadFile, HTTPException, File
-from pydantic import BaseModel
-from typing import List
 from langchain_openai import ChatOpenAI
 from app.utils import process_pdf_content, process_image_content
-from app.core.config import settings
+from app.schemas import FlashcardResponse
 
 router = APIRouter()
 
 
-# Structured output for LangChain
-class Flashcard(BaseModel):
-    question: str
-    answer: str
-
-
-class FlashcardResponse(BaseModel):
-    flashcards: List[Flashcard]
-
-
 @router.post("/generate", response_model=FlashcardResponse)
 async def generate_flashcards(file: UploadFile = File(...)):
-    api_key = settings.OPENAI_API_KEY
-    if not api_key or api_key == "your_openai_api_key_here":
-        raise HTTPException(status_code=500, detail="OpenAI API key not configured.")
-
     try:
         content_type = file.content_type
         file_bytes = await file.read()
@@ -39,10 +23,10 @@ async def generate_flashcards(file: UploadFile = File(...)):
 
             if not extracted_text.strip():
                 raise HTTPException(
-                    status_code=400, detail="Could not extract text from the PDF."
+                    status_code=400, detail="could not extract text from the pdf."
                 )
 
-            prompt = f"Extract key concepts from the following text and generate flashcards. Text: {extracted_text}"
+            prompt = f"extract key concepts from the following text and generate flashcards. text: {extracted_text}"
             response = llm.invoke(prompt)
             return response
 
@@ -56,7 +40,7 @@ async def generate_flashcards(file: UploadFile = File(...)):
                     "content": [
                         {
                             "type": "text",
-                            "text": "Analyze this image, extract key concepts or text, and generate flashcards based on the content.",
+                            "text": "analyze this image, extract key concepts or text, and generate flashcards based on the content.",
                         },
                         {"type": "image_url", "image_url": {"url": base64_image}},
                     ],
@@ -67,7 +51,7 @@ async def generate_flashcards(file: UploadFile = File(...)):
 
         else:
             raise HTTPException(
-                status_code=400, detail=f"Unsupported file type: {content_type}"
+                status_code=400, detail=f"unsupported file type: {content_type}"
             )
 
     except Exception as e:
