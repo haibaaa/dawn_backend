@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, ConfigDict, Field
+from pydantic import BaseModel, EmailStr, ConfigDict, Field, model_validator
 from datetime import datetime, date
 from enum import Enum
 
@@ -84,10 +84,14 @@ class TaskCreate(TaskBase):
 class TaskUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
+    status: Status | None = None
     deadline: date | None = None
     estimated_hours: float | None = Field(None, ge=0)
-    status: Status | None = None
-    priority: float | None = Field(None, ge=0)
+    grade_impact: float | None = Field(None, ge=0)
+    course_id: int | None = None
+    assessment_id: int | None = None
+    dependencies: list[int] | None = None
+    dependents: list[int] | None = None
 
 
 class TaskResponse(TaskBase):
@@ -96,6 +100,19 @@ class TaskResponse(TaskBase):
     created_at: datetime
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+    @model_validator(mode='before')
+    @classmethod
+    def extract_dependency_ids(cls, data):
+        if not isinstance(data, dict):
+            deps = getattr(data, 'prerequisites', []) or []
+            dependents = getattr(data, 'dependents', []) or []
+            return {
+                **data.__dict__,
+                'dependencies': [t.id for t in deps],
+                'dependents': [t.id for t in dependents],
+            }
+        return data
 
 
 # --- ENROLLMENT SCHEMAS ---
