@@ -18,12 +18,13 @@ async def generate_quiz(file: UploadFile = File(...)):
 
         quiz_prompt_text = """
         analyze the following material and generate a challenging multiple-choice quiz.
-        create 10 high-quality questions that test conceptual understanding, not just definitions.
+        create  10 - 15 questions according to the length of document that test conceptual understanding, not just definitions.
         
         for each question:
         1. set 'type' to 'quiz'.
         2. provide 4 plausible options (1 correct, 3 distractors).
         3. include a concise 'explanation' of why the correct answer is right.
+        4. give correct options in jumbled format.
         """
 
         if content_type == "application/pdf":
