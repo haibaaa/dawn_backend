@@ -1,3 +1,4 @@
 - merge features {priority_engine, tasks}
 - layer auth
 - add filter search on resources
+- clean up utils.get_and_sync
