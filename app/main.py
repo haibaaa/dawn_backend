@@ -1,14 +1,12 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import pandas as pd
 from app.core.database import engine, Base
-<<<<<<< HEAD
 from app.utils import valid_courses
-from app.routes import auth, flashcard, resources, quiz, tasks, enrollment, courses, assessment_groups, assessments, student_assessments
-=======
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import (
     auth,
@@ -22,9 +20,9 @@ from app.routes import (
     assessments,
     student_assessments,
 )
->>>>>>> 60862b4a8f7b35ffec34c7a106471420f9c599ae
 
 Base.metadata.create_all(bind=engine)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -32,6 +30,7 @@ async def lifespan(app: FastAPI):
     df["Course Code"] = df["Course Code"].str.split("/").str[0].str.strip()
     valid_courses.update(dict(zip(df["Course Code"], df["Course Name"])))
     yield
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -49,25 +48,21 @@ app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(flashcard.router, prefix="/flashcards", tags=["Flashcards"])
 app.include_router(resources.router, prefix="/resources", tags=["Resources"])
 app.include_router(tasks.router, prefix="/tasks", tags=["Tasks"])
-<<<<<<< HEAD
 app.include_router(enrollment.router, prefix="/enrollments", tags=["Enrollments"])
 app.include_router(courses.router, prefix="/courses", tags=["Courses"])
-app.include_router(assessment_groups.router, prefix="/assessment-groups", tags=["Assessment Groups"])
+app.include_router(
+    assessment_groups.router, prefix="/assessment-groups", tags=["Assessment Groups"]
+)
 app.include_router(assessments.router, prefix="/assessments", tags=["Assessments"])
-app.include_router(student_assessments.router, prefix="/student-assessments", tags=["Student Assessments"])
-=======
-app.include_router(enrollment.router, prefix="/enrollments", tags=["Tasks"])
-app.include_router(courses.router, prefix="/courses", tags=["Tasks"])
 app.include_router(
-    assessment_groups.router, prefix="/assessment-groups", tags=["Tasks"]
+    student_assessments.router,
+    prefix="/student-assessments",
+    tags=["Student Assessments"],
 )
-app.include_router(assessments.router, prefix="/assessments", tags=["Tasks"])
-app.include_router(
-    student_assessments.router, prefix="/student-assessments", tags=["Tasks"]
-)
->>>>>>> 60862b4a8f7b35ffec34c7a106471420f9c599ae
 app.include_router(quiz.router, prefix="/quiz", tags=["Quiz"])
+
 
 @app.get("/")
 def health_check():
     return {"status": "online", "database": "connected to supabase"}
+

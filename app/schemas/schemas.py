@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 from typing import List, Literal, Optional
-=======
-from typing import Optional, Literal
->>>>>>> 60862b4a8f7b35ffec34c7a106471420f9c599ae
 from pydantic import BaseModel, EmailStr, model_validator, ConfigDict, Field
 from datetime import datetime, date
 from app.enums import Status
