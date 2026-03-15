@@ -4,7 +4,9 @@ from typing import List
 from app.schemas import schemas
 from app.models import models
 from app.core.database import get_db
-from app.utils import get_and_sync_user, get_valid_courses, get_enrollment_or_404
+from app.utils import get_valid_courses, get_enrollment_or_404
+from app.utils.get_and_sync_user import get_and_sync_user
+
 
 router = APIRouter(
     prefix="/enrollments",

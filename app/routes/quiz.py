@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, HTTPException, File
 from langchain_openai import ChatOpenAI
 from app.utils import process_pdf_content, process_image_content
-from app.schemas import QuizResponse
+from app.schemas.schemas import QuizResponse
 
 router = APIRouter()
 

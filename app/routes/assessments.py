@@ -5,7 +5,9 @@ from datetime import datetime
 from app.models import models
 from app.schemas import schemas
 from app.core.database import get_db
-from app.utils import check_enrolled, get_and_sync_user
+from app.utils import check_enrolled
+from app.utils.get_and_sync_user import get_and_sync_user
+
 
 router = APIRouter(prefix="/assessments", tags=['Assessments'])
 

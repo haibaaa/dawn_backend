@@ -4,7 +4,9 @@ from datetime import date
 from app.models import models
 from app.schemas import schemas
 from app.core.database import get_db
-from app.utils import get_priority, get_and_sync_user  # Cleaned up utils
+from app.utils.get_and_sync_user import get_and_sync_user
+from app.utils.prioritiser import PriorityEngine
+
 
 router = APIRouter()
 
@@ -110,33 +112,56 @@ def create_task(
 
     # 4. Calculate Priority and update the dictionary
     # By putting it in 'data', we ensure it gets unpacked into the model correctly
-    data["priority"] = get_priority(
-        deadline=data.get("deadline"),
-        estimated_hours=data.get("estimated_hours", 0),
-        grade_impact=data.get("grade_impact", 0),
-    )
-
-    # 5. Construct the Task model
-    # We unpack **data (which now includes the new priority) and add the user_id
+    data["priority"] = 0.0
     new_task = models.Task(**data, user_id=user.id)
 
-    # 6. Database Transaction
     try:
         db.add(new_task)
-        db.flush()  # Pushes to DB temporarily to generate new_task.id
+        db.flush()
 
-        # Handle the many-to-many relationship links
+        # handle dependencies FIRST
         handle_dependencies(db, new_task.id, dep_ids)
         handle_dependencies(db, new_task.id, det_ids, is_dependent=True)
+        db.flush()  # flush dependencies to DB
+
+        # THEN calculate priority so it can see the dependencies
+        new_task.priority = PriorityEngine.calculate_task_priority(db, new_task)
 
         db.commit()
         db.refresh(new_task)
         return new_task
-
     except Exception as e:
         db.rollback()
         # Log the error here if you have a logger
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@router.patch("/{id}", response_model=schemas.TaskResponse, status_code=200)
+def update_task(
+    id: int,
+    task_in: schemas.TaskUpdate,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(get_and_sync_user),
+):
+    task = db.query(models.Task).filter(
+        models.Task.id == id,
+        models.Task.user_id == user.id
+    ).first()
+    if not task:
+        raise HTTPException(404, "Task not found")
+
+    update_data = task_in.dict(exclude_unset=True)
+    
+    for field, value in update_data.items():
+        setattr(task, field, value)
+
+    db.commit()
+
+    # recalculate all priorities if status changed
+    if "status" in update_data:
+        PriorityEngine.update_all_priorities(db, user.id)
+
+    db.refresh(task)
+    return task
 
 
 @router.delete("/{id}", status_code=204)

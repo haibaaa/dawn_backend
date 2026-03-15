@@ -5,8 +5,10 @@ from typing import List
 from app.models import models
 from app.schemas import schemas
 from app.core.database import get_db
-from app.utils import check_enrolled, calculate_current_score, get_and_sync_user
+from app.utils import check_enrolled, calculate_current_score
 from app.utils.prioritiser import PriorityEngine
+from app.utils.get_and_sync_user import get_and_sync_user
+
 
 router = APIRouter(prefix="/student-assessments", tags=['Student Assessments'])
 

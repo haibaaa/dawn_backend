@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from app.models import models
 from app.schemas import schemas
 from app.core.database import get_db
-from app.utils import check_enrolled, get_and_sync_user, get_course_or_404
+from app.utils import check_enrolled, get_course_or_404
+from app.utils.get_and_sync_user import get_and_sync_user
 
 router = APIRouter(
     prefix="/assessment-groups",

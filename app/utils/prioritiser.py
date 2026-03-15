@@ -7,30 +7,23 @@ from app.enums import Status
 
 class PriorityEngine:
     @staticmethod
-    def calculate_task_priority(db: Session, task_id: int):
-        # Optimization: Use joinedload to get enrollment immediately
-        task = (
-            db.query(Task)
-            .options(joinedload(Task.course).joinedload(Course.enrollments))
-            .filter(Task.id == task_id)
-            .first()
-        )
-
+    def calculate_task_priority(db: Session, task: Task) -> float:
+    
         if not task or task.status == Status.COMPLETED:
             return 0.0
 
-        # Check Dependencies: More efficient 'exists' check
-        has_blockers = db.query(
-            exists().where(
-                and_(
-                    TaskDependency.task_id == task_id,
-                    Task.id == TaskDependency.depends_on_task_id,
-                    Task.status != Status.COMPLETED,
-                )
-            )
-        ).scalar()
-
-        if has_blockers:
+        # Check Dependencies
+        blocking_tasks = (
+        db.query(Task)
+        .join(TaskDependency, Task.id == TaskDependency.depends_on_task_id)
+        .filter(
+            TaskDependency.task_id == task.id,
+            Task.status != Status.COMPLETED
+        )
+        .first()
+        )
+        
+        if blocking_tasks:
             return 0.0
 
         # Enrollment Logic (Safe access)
@@ -74,16 +67,11 @@ class PriorityEngine:
 
     @staticmethod
     def update_all_priorities(db: Session, user_id: str):
-        # Optimization: Fetch all needed data in one query to avoid N+1
         tasks = (
             db.query(Task)
             .filter(Task.user_id == user_id, Task.status != Status.COMPLETED)
             .all()
         )
-
         for task in tasks:
-            # You can call the static method, or move logic here
-            # to reuse the already loaded 'tasks' list for dependency checks
-            task.priority = PriorityEngine.calculate_task_priority(db, task.id)
-
+            task.priority = PriorityEngine.calculate_task_priority(db, task)
         db.commit()

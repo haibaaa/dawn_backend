@@ -121,12 +121,12 @@ class Task(Base):
     assessment = relationship("Assessment", back_populates="tasks")
 
     dependencies_links = relationship(
-        "TaskDependency", foreign_keys="[TaskDependency.task_id]", back_populates="task"
+        "TaskDependency", foreign_keys="[TaskDependency.task_id]", back_populates="task", passive_deletes=True
     )
     dependents_links = relationship(
         "TaskDependency",
         foreign_keys="[TaskDependency.depends_on_task_id]",
-        back_populates="depends_on_task",
+        back_populates="depends_on_task", passive_deletes=True
     )
 
     prerequisites = association_proxy("dependencies_links", "depends_on_task")

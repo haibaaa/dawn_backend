@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, EmailStr, model_validator, ConfigDict, Field
 from datetime import datetime, date
 from app.enums import Status
@@ -6,7 +6,6 @@ from app.enums import Status
 
 # --- USER SCHEMAS ---
 class UserCreate(BaseModel):
-    name: str
     email: EmailStr
     password: str
 
@@ -190,3 +189,20 @@ class ResourceResponse(BaseModel):
     tags: list[str]
     user_id: str
     model_config = ConfigDict(from_attributes=True)
+
+
+class QuizQuestion(BaseModel):
+    type: Literal["quiz"] # Hardcoded type for the UI to read
+    question: str
+    correct_answer: str
+    options: List[str] # List of 4 multiple choice options (including correct one)
+    explanation: str # Why the answer is correct
+    options: list[str]  # List of 4 multiple choice options (including correct one)
+    explanation: str  # Why the answer is correct
+
+
+class QuizResponse(BaseModel):
+    title: str 
+    questions: List[QuizQuestion]
+    title: str
+    questions: list[QuizQuestion]
