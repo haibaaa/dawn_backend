@@ -3,11 +3,13 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models import Resource
 from app.core.supabase_client import supabase
-from app.utils import get_and_sync_user
+from app.utils import get_and_sync_user, get_current_user
 from app.core.config import settings
 import uuid
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.post("/upload")

@@ -1,21 +1,43 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from app.models.models import User
+from supabase import create_client, Client
+from app.core.config import settings
 from app.core.database import get_db
+from app.models import User
+
+# this looks for the "authorization: bearer <token>" header
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_ANON_KEY)
 
 
-async def get_and_sync_user(db: Session = Depends(get_db)):
-    # 1. In a real scenario, you'd decode the JWT from the header here.
-    # For now, we'll use your current test ID.
-    user_id = "79e049e6-ac6e-488d-a359-5f6cc8dd6b2f"
-    user_email = "haiba@nixos.local"  # Mocking email for now
+async def get_and_sync_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
+    # validate token with supabase
+    try:
+        user_res = supabase.auth.get_user(token)
+        if not user_res or not user_res.user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="invalid or expired session",
+            )
 
-    # 2. Check the PUBLIC schema
+        auth_user = user_res.user
+        user_id = auth_user.id
+        user_email = auth_user.email
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"authentication failed: {str(e)}",
+        )
+
+    # check/sync with local db
     db_user = db.query(User).filter(User.id == user_id).first()
 
-    # 3. If they don't exist in 'public', create them now
     if not db_user:
-        print(f"DEBUG: Syncing user {user_id} to public schema...")
+        # first time this user has hit our api
         db_user = User(id=user_id, email=user_email)
         db.add(db_user)
         try:
@@ -23,10 +45,9 @@ async def get_and_sync_user(db: Session = Depends(get_db)):
             db.refresh(db_user)
         except Exception as e:
             db.rollback()
-            # This will tell us EXACTLY why the DB rejected the user
             raise HTTPException(
                 status_code=500,
-                detail=f"User sync failed: {str(e)}",
+                detail="failed to sync user to local database",
             )
 
     return db_user
