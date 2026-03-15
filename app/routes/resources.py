@@ -1,7 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy import String
 from app.core.database import get_db
 from app.models import Resource
 from app.core.supabase_client import supabase
