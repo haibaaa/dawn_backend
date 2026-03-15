@@ -222,22 +222,19 @@ class ResourceResponse(BaseModel):
     user_id: str
     model_config = ConfigDict(from_attributes=True)
 
-<<<<<<< HEAD
 
 class QuizQuestion(BaseModel):
-    type: Literal["quiz"] # Hardcoded type for the UI to read
+    type: Literal["quiz"]  # Hardcoded type for the UI to read
     question: str
     correct_answer: str
-    options: List[str] # List of 4 multiple choice options (including correct one)
-    explanation: str # Why the answer is correct
+    options: List[str]  # List of 4 multiple choice options (including correct one)
+    explanation: str  # Why the answer is correct
     options: list[str]  # List of 4 multiple choice options (including correct one)
     explanation: str  # Why the answer is correct
 
 
 class QuizResponse(BaseModel):
-    title: str 
+    title: str
     questions: List[QuizQuestion]
     title: str
     questions: list[QuizQuestion]
-=======
->>>>>>> 60862b4a8f7b35ffec34c7a106471420f9c599ae
