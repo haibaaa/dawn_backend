@@ -1,114 +1,170 @@
-from pydantic import BaseModel, EmailStr, ConfigDict, Field
+from typing import Optional
+from pydantic import BaseModel, EmailStr, model_validator, ConfigDict, Field
 from datetime import datetime, date
-from enum import Enum
-from typing import Literal
-
-
-# --- ENUMS ---
-class Status(str, Enum):
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
+from app.enums import Status
 
 
 # --- USER SCHEMAS ---
-
-
-class UserBase(BaseModel):
+class UserCreate(BaseModel):
+    name: str
     email: EmailStr
-
-
-class UserCreate(UserBase):
     password: str
 
-
-class UserResponse(UserBase):
-    id: str  # Matches Supabase UUID string
+class UserOut(BaseModel):
+    id: str
+    name: str
+    email: EmailStr
     model_config = ConfigDict(from_attributes=True)
 
-
-# --- COURSE SCHEMAS ---
-class CourseBase(BaseModel):
-    name: str
-    course_code: str
-    semester: int | None = None
-    a_cutoff: float | None = 80.0
-
-
-class CourseCreate(CourseBase):
-    pass
-
-
-class CourseResponse(CourseBase):
-    id: int
-    model_config = ConfigDict(from_attributes=True)
-
-
-# --- ASSESSMENT SCHEMAS ---
-class AssessmentGroupBase(BaseModel):
-    name: str
-    weight: float
-    best_of: int | None = None
-    count: int
-    course_id: int
-
-
-class AssessmentBase(BaseModel):
-    name: str
-    max_score: float | None = None
-    deadline: datetime | None = None
-    assessment_group_id: int
-
-
-class AssessmentResponse(AssessmentBase):
-    id: int
-    model_config = ConfigDict(from_attributes=True)
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
 
 
 # --- TASK SCHEMAS ---
 class TaskBase(BaseModel):
     title: str
-    description: str | None = None
-    deadline: date | None = None
-    estimated_hours: float = Field(default=0.0, ge=0)
-    grade_impact: float | None = None
+    description: Optional[str] = None
     status: Status = Status.PENDING
-    priority: float = Field(default=0.0, ge=0)
-    course_id: int | None = None
-    assessment_id: int | None = None
-
+    deadline: Optional[date] = None
+    estimated_hours: Optional[float] = None
+    grade_impact: Optional[float] = None
+    course_id: Optional[int] = None
+    assessment_id: Optional[int] = None
+    dependencies: Optional[list[int]] = None
+    dependents: Optional[list[int]] = None
 
 class TaskCreate(TaskBase):
     pass
 
-
-class TaskUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None
-    deadline: date | None = None
-    estimated_hours: float | None = Field(None, ge=0)
-    status: Status | None = None
-    priority: float | None = Field(None, ge=0)
-
-
 class TaskResponse(TaskBase):
     id: int
     user_id: str
+    priority: float
     created_at: datetime
     updated_at: datetime
+    completed_at: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
+
+    @model_validator(mode='before')
+    @classmethod
+    def extract_dependency_ids(cls, data):
+        if not isinstance(data, dict):
+            deps = getattr(data, 'prerequisites', []) or []
+            dependents = getattr(data, 'dependents', []) or []
+            return {
+                **data.__dict__,
+                'dependencies': [t.id for t in deps],
+                'dependents': [t.id for t in dependents],
+            }
+        return data
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[Status] = None
+    deadline: Optional[date] = None
+    estimated_hours: Optional[float] = None
+    grade_impact: Optional[float] = None
+    course_id: Optional[int] = None
+    assessment_id: Optional[int] = None
+    dependencies: Optional[list[int]] = None
+    dependents: Optional[list[int]] = None
+
+class TaskStatusUpdate(BaseModel):
+    status: Status
+
+
+# --- ASSESSMENT SCHEMAS ---
+class AssessmentOut(BaseModel):
+    id: int
+    name: str
+    max_score: Optional[float] = None
+    deadline: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
+
+class AssessmentGroupOut(BaseModel):
+    id: int
+    name: str
+    weight: float
+    count: int
+    best_of: Optional[int] = None
+    assessments: list[AssessmentOut] = []
+    model_config = ConfigDict(from_attributes=True)
+
+class AssessmentGroupCreate(BaseModel):
+    name: str
+    weight: float
+    count: int
+    best_of: Optional[int] = None
+    course_code: str
+
+class AssessmentGroupUpdate(BaseModel):
+    name: Optional[str] = None
+    weight: Optional[float] = None
+    count: Optional[int] = None
+    best_of: Optional[int] = None
+
+class AssessmentCreate(BaseModel):
+    name: str
+    max_score: Optional[float] = None
+    deadline: Optional[datetime] = None
+    assessment_group_id: int
+
+class AssessmentUpdate(BaseModel):
+    name: Optional[str] = None
+    max_score: Optional[float] = None
+    deadline: Optional[datetime] = None
+
+
+# --- COURSE SCHEMAS ---
+class CourseOut(BaseModel):
+    id: int
+    name: str
+    course_code: str
+    semester: Optional[int] = None
+    a_cutoff: Optional[float] = None
+    assessment_groups: list[AssessmentGroupOut] = []
+    model_config = ConfigDict(from_attributes=True)
+
+class CourseCreate(BaseModel):
+    name: str
+    course_code: str
+    semester: Optional[int] = None
+    a_cutoff: Optional[float] = None
 
 
 # --- ENROLLMENT SCHEMAS ---
-class EnrollmentBase(BaseModel):
-    course_id: int
-    grade: str | None = Field(None, max_length=2)
-    current_score: float | None = None
-    target_score: float = Field(default=0.0, ge=0, le=100)
+class EnrollmentOut(BaseModel):
+    grade: Optional[str] = None
+    final_score: Optional[float] = None
+    current_score: Optional[float] = None
+    target_grade: Optional[str] = None
+    target_score: Optional[float] = None
+    course: CourseOut
+    model_config = ConfigDict(from_attributes=True)
+
+class EnrollmentCreate(BaseModel):
+    course_code: str
+    target_grade: Optional[str] = None
+    target_score: Optional[float] = None
+
+class EnrollmentUpdate(BaseModel):
+    target_grade: Optional[str] = None
+    target_score: Optional[float] = None
 
 
-class EnrollmentResponse(EnrollmentBase):
-    user_id: str
+# --- STUDENT ASSESSMENT SCHEMAS ---
+class StudentAssessmentCreate(BaseModel):
+    assessment_id: int
+    score: Optional[float] = None
+
+class StudentAssessmentUpdate(BaseModel):
+    score: Optional[float] = None
+
+class StudentAssessmentOut(BaseModel):
+    score: Optional[float] = None
+    assessment: AssessmentOut
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -117,31 +173,15 @@ class Flashcard(BaseModel):
     question: str
     answer: str
 
-
 class FlashcardResponse(BaseModel):
     flashcards: list[Flashcard]
-
-
-# ---- Quiz Schema ----
-class QuizQuestion(BaseModel):
-    type: Literal["quiz"]  # Hardcoded type for the UI to read
-    question: str
-    correct_answer: str
-    options: list[str]  # List of 4 multiple choice options (including correct one)
-    explanation: str  # Why the answer is correct
-
-
-class QuizResponse(BaseModel):
-    title: str  # e.g., "Quiz based on Molecular_Bio_Lec2.pdf"
-    questions: list[QuizQuestion]
 
 
 # --- RESOURCE SCHEMAS ---
 class ResourceCreate(BaseModel):
     title: str
-    course_id: int | None = None
-    tags: str  # We'll receive tags as a comma-separated string from the Form
-
+    course_id: Optional[int] = None
+    tags: str
 
 class ResourceResponse(BaseModel):
     id: int

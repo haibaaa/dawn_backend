@@ -99,6 +99,14 @@ def create_task(
     validate_task_relations(db, data.get("course_id"), data.get("assessment_id"))
     if data.get("deadline") and data["deadline"] < date.today():
         raise HTTPException(status_code=400, detail="deadline cannot be in the past")
+    
+    if data.get("assessment_id"):
+        assessment = db.query(models.Assessment).filter(
+            models.Assessment.id == data["assessment_id"]
+        ).first()
+        group = assessment.assessment_group
+        divisor = group.best_of if group.best_of else group.count
+        data["grade_impact"] = round(group.weight / divisor, 4)
 
     # 4. Calculate Priority and update the dictionary
     # By putting it in 'data', we ensure it gets unpacked into the model correctly

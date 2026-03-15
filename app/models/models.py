@@ -14,7 +14,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.dialects.postgresql import ARRAY
 from app.core.database import Base
-from app.schemas.schemas import Status  # Ensure this path is correct
+from app.enums import Status  # Ensure this path is correct
 
 
 class Resource(Base):
