@@ -9,9 +9,7 @@ from app.utils.get_and_sync_user import get_and_sync_user
 from app.utils.middleware import get_current_user
 
 
-router = APIRouter(
-    dependencies=[Depends(get_current_user)],
-)
+router = APIRouter()
 
 # POST /enrollments — validate course against Excel, create course in DB if first enrollment, enroll user, return EnrollmentOut
 # GET /enrollments — get all courses user is enrolled in with current scores and progress
@@ -134,4 +132,3 @@ def delete_enrollment(
     enrollment = get_enrollment_or_404(db, user.id, id)
     db.delete(enrollment)
     db.commit()
-

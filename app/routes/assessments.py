@@ -9,9 +9,7 @@ from app.utils.get_and_sync_user import get_and_sync_user
 from app.utils.middleware import get_current_user
 
 
-router = APIRouter(
-    dependencies=[Depends(get_current_user)],
-)
+router = APIRouter()
 
 # routers/assessments.py
 
@@ -117,4 +115,3 @@ def delete_assessment(
     check_enrolled(db, user.id, assessment.assessment_group.course_id)
     db.delete(assessment)
     db.commit()
-

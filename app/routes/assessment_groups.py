@@ -7,14 +7,8 @@ from app.utils import check_enrolled, get_course_or_404
 from app.utils.get_and_sync_user import get_and_sync_user
 from app.utils.middleware import get_current_user
 
-router = APIRouter(
-    prefix="/assessment-groups",
-    tags=['Assessment Groups']
-)
 
-router = APIRouter(
-    dependencies=[Depends(get_current_user)],
-)
+router = APIRouter()
 
 
 def validate_group_fields(
@@ -113,4 +107,3 @@ def delete_assessment_group(
     check_enrolled(db, user.id, group.course_id)
     db.delete(group)
     db.commit()
-

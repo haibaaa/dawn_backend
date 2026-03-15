@@ -13,7 +13,6 @@ router = APIRouter()
 )
 async def generate_flashcards(
     file: UploadFile = File(...),
-    current_user=Depends(get_current_user),
 ):
     try:
         content_type = file.content_type

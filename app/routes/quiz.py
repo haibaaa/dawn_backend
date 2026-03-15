@@ -9,7 +9,6 @@ router = APIRouter()
 @router.post("/generate", response_model=list[dict])
 async def generate_quiz(
     file: UploadFile = File(...),
-    current_user=Depends(get_current_user),
 ):
     try:
         content_type = file.content_type

@@ -9,9 +9,7 @@ from app.utils.prioritiser import PriorityEngine
 from app.utils.middleware import get_current_user
 
 
-router = APIRouter(
-    dependencies=[Depends(get_current_user)],
-)
+router = APIRouter()
 
 
 def validate_task_relations(
@@ -74,7 +72,7 @@ def get_tasks(
     task_status: schemas.Status = schemas.Status.PENDING,
     sort_by: str = "priority",
     limit: int = Query(10, le=100),
-    db: Session = Depends(get_db), 
+    db: Session = Depends(get_db),
     user: models.User = Depends(get_and_sync_user),
 ):
     query = db.query(models.Task).filter(models.Task.user_id == user.id)
@@ -102,11 +100,13 @@ def create_task(
     validate_task_relations(db, data.get("course_id"), data.get("assessment_id"))
     if data.get("deadline") and data["deadline"] < date.today():
         raise HTTPException(status_code=400, detail="deadline cannot be in the past")
-    
+
     if data.get("assessment_id"):
-        assessment = db.query(models.Assessment).filter(
-            models.Assessment.id == data["assessment_id"]
-        ).first()
+        assessment = (
+            db.query(models.Assessment)
+            .filter(models.Assessment.id == data["assessment_id"])
+            .first()
+        )
         group = assessment.assessment_group
         divisor = group.best_of if group.best_of else group.count
         data["grade_impact"] = round(group.weight / divisor, 4)
@@ -136,6 +136,7 @@ def create_task(
         # Log the error here if you have a logger
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+
 @router.patch("/{id}", response_model=schemas.TaskResponse, status_code=200)
 def update_task(
     id: int,
@@ -143,15 +144,16 @@ def update_task(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_and_sync_user),
 ):
-    task = db.query(models.Task).filter(
-        models.Task.id == id,
-        models.Task.user_id == user.id
-    ).first()
+    task = (
+        db.query(models.Task)
+        .filter(models.Task.id == id, models.Task.user_id == user.id)
+        .first()
+    )
     if not task:
         raise HTTPException(404, "Task not found")
 
     update_data = task_in.dict(exclude_unset=True)
-    
+
     for field, value in update_data.items():
         setattr(task, field, value)
 

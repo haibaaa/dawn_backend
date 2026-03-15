@@ -7,9 +7,7 @@ from app.utils import get_and_sync_user, get_current_user
 from app.core.config import settings
 import uuid
 
-router = APIRouter(
-    dependencies=[Depends(get_current_user)],
-)
+router = APIRouter()
 
 
 @router.get("/")

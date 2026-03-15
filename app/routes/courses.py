@@ -4,9 +4,7 @@ from app.models import models
 from app.core.database import get_db
 from app.utils import get_valid_courses, get_current_user
 
-router = APIRouter(
-    dependencies=[Depends(get_current_user)],
-)
+router = APIRouter()
 # GET /courses/{course_id} — get course details with nested assessment groups and assessments (for viewing structure)
 # GET /courses — search available courses (reads from Excel, not DB) so user can see what's offered before enrolling
 
@@ -49,4 +47,3 @@ def get_course_by_code(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Course {code} is not offered this semester",
     )
-

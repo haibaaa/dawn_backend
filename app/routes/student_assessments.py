@@ -14,9 +14,7 @@ from app.utils.prioritiser import PriorityEngine
 from app.utils.get_and_sync_user import get_and_sync_user
 
 
-router = APIRouter(
-    dependencies=[Depends(get_current_user)],
-)
+router = APIRouter()
 
 # routers/student_assessments.py
 
@@ -220,4 +218,3 @@ def delete_score(
     update_enrollment_score(db, user.id, course_id)
 
     db.commit()
-
