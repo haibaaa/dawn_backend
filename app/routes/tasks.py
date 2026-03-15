@@ -74,7 +74,7 @@ def get_tasks(
     task_status: schemas.Status = schemas.Status.PENDING,
     sort_by: str = "priority",
     limit: int = Query(10, le=100),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db), 
     user: models.User = Depends(get_and_sync_user),
 ):
     query = db.query(models.Task).filter(models.Task.user_id == user.id)
@@ -181,46 +181,3 @@ def delete_task(
 
     db.delete(task)
     db.commit()
-
-
-@router.patch("/{id}", response_model=schemas.TaskResponse)
-def update_task(
-    id: int,
-    task_update: schemas.TaskUpdate,  # Note: Uses a different schema for partial updates
-    db: Session = Depends(get_db),
-    user: models.User = Depends(get_and_sync_user),
-):
-    # 1. Fetch the existing task
-    task = (
-        db.query(models.Task)
-        .filter(models.Task.id == id, models.Task.user_id == user.id)
-        .first()
-    )
-
-    if not task:
-        raise HTTPException(404, "Task not found")
-
-    # 2. Extract data to update
-    update_data = task_update.dict(exclude_unset=True)  # Only update what's in the JSON
-
-    # 3. Recalculate priority if relevant fields changed
-    # We combine existing task data with the new updates
-    new_deadline = update_data.get("deadline", task.deadline)
-    new_hours = update_data.get("estimated_hours", task.estimated_hours)
-    new_impact = update_data.get("grade_impact", task.grade_impact)
-
-    update_data["priority"] = get_priority(
-        deadline=new_deadline, estimated_hours=new_hours, grade_impact=new_impact
-    )
-
-    # 4. Apply updates to the model
-    for key, value in update_data.items():
-        setattr(task, key, value)
-
-    try:
-        db.commit()
-        db.refresh(task)
-        return task
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(500, detail=str(e))
