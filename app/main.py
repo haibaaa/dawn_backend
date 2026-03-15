@@ -5,8 +5,24 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import pandas as pd
 from app.core.database import engine, Base
+<<<<<<< HEAD
 from app.utils import valid_courses
 from app.routes import auth, flashcard, resources, quiz, tasks, enrollment, courses, assessment_groups, assessments, student_assessments
+=======
+from fastapi.middleware.cors import CORSMiddleware
+from app.routes import (
+    auth,
+    flashcard,
+    resources,
+    quiz,
+    tasks,
+    enrollment,
+    courses,
+    assessment_groups,
+    assessments,
+    student_assessments,
+)
+>>>>>>> 60862b4a8f7b35ffec34c7a106471420f9c599ae
 
 Base.metadata.create_all(bind=engine)
 
@@ -19,15 +35,37 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+
+# enable cors for the frontend origin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(flashcard.router, prefix="/flashcards", tags=["Flashcards"])
 app.include_router(resources.router, prefix="/resources", tags=["Resources"])
 app.include_router(tasks.router, prefix="/tasks", tags=["Tasks"])
+<<<<<<< HEAD
 app.include_router(enrollment.router, prefix="/enrollments", tags=["Enrollments"])
 app.include_router(courses.router, prefix="/courses", tags=["Courses"])
 app.include_router(assessment_groups.router, prefix="/assessment-groups", tags=["Assessment Groups"])
 app.include_router(assessments.router, prefix="/assessments", tags=["Assessments"])
 app.include_router(student_assessments.router, prefix="/student-assessments", tags=["Student Assessments"])
+=======
+app.include_router(enrollment.router, prefix="/enrollments", tags=["Tasks"])
+app.include_router(courses.router, prefix="/courses", tags=["Tasks"])
+app.include_router(
+    assessment_groups.router, prefix="/assessment-groups", tags=["Tasks"]
+)
+app.include_router(assessments.router, prefix="/assessments", tags=["Tasks"])
+app.include_router(
+    student_assessments.router, prefix="/student-assessments", tags=["Tasks"]
+)
+>>>>>>> 60862b4a8f7b35ffec34c7a106471420f9c599ae
 app.include_router(quiz.router, prefix="/quiz", tags=["Quiz"])
 
 @app.get("/")

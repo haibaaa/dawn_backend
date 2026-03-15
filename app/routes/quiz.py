@@ -1,13 +1,16 @@
-from fastapi import APIRouter, UploadFile, HTTPException, File
+from fastapi import APIRouter, UploadFile, HTTPException, File, Depends
 from langchain_openai import ChatOpenAI
-from app.utils import process_pdf_content, process_image_content
-from app.schemas.schemas import QuizResponse
+from app.utils import process_pdf_content, process_image_content, get_current_user
+from app.schemas import QuizResponse
 
 router = APIRouter()
 
 
 @router.post("/generate", response_model=list[dict])
-async def generate_quiz(file: UploadFile = File(...)):
+async def generate_quiz(
+    file: UploadFile = File(...),
+    current_user=Depends(get_current_user),
+):
     try:
         content_type = file.content_type
         file_bytes = await file.read()

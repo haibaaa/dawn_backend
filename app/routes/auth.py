@@ -10,8 +10,8 @@ supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_ANON_K
 @router.post("/signup")
 async def signup(
     user_data: UserCreate,
-):  # FastAPI now knows to look in the Request Body
-    # Access them via user_data.email and user_data.password
+):  # fastapi now knows to look in the request body
+    # access them via user_data.email and user_data.password
     response = supabase.auth.sign_up(
         {
             "email": user_data.email,
@@ -25,7 +25,7 @@ async def signup(
         )
 
     return {
-        "message": "success! check your email for confirmation.",
+        "message": "success!",
         "user_id": response.user.id,
     }
 
@@ -49,6 +49,24 @@ async def login(
         return {
             "access_token": response.session.access_token,
             "token_type": "bearer",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/refresh")
+async def refresh_token(refresh_token: str):
+    try:
+        # supabase handles the exchange
+        response = supabase.auth.refresh_session(refresh_token)
+
+        if response.session is None:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+        return {
+            "access_token": response.session.access_token,
+            "refresh_token": response.session.refresh_token,  # new refresh token
+            "expires_in": response.session.expires_in,
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

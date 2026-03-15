@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from typing import List, Literal, Optional
+=======
+from typing import Optional, Literal
+>>>>>>> 60862b4a8f7b35ffec34c7a106471420f9c599ae
 from pydantic import BaseModel, EmailStr, model_validator, ConfigDict, Field
 from datetime import datetime, date
 from app.enums import Status
@@ -9,11 +13,13 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
+
 class UserOut(BaseModel):
     id: str
     name: str
     email: EmailStr
     model_config = ConfigDict(from_attributes=True)
+
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -33,8 +39,10 @@ class TaskBase(BaseModel):
     dependencies: Optional[list[int]] = None
     dependents: Optional[list[int]] = None
 
+
 class TaskCreate(TaskBase):
     pass
+
 
 class TaskResponse(TaskBase):
     id: int
@@ -45,18 +53,19 @@ class TaskResponse(TaskBase):
     completed_at: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def extract_dependency_ids(cls, data):
         if not isinstance(data, dict):
-            deps = getattr(data, 'prerequisites', []) or []
-            dependents = getattr(data, 'dependents', []) or []
+            deps = getattr(data, "prerequisites", []) or []
+            dependents = getattr(data, "dependents", []) or []
             return {
                 **data.__dict__,
-                'dependencies': [t.id for t in deps],
-                'dependents': [t.id for t in dependents],
+                "dependencies": [t.id for t in deps],
+                "dependents": [t.id for t in dependents],
             }
         return data
+
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
@@ -70,8 +79,23 @@ class TaskUpdate(BaseModel):
     dependencies: Optional[list[int]] = None
     dependents: Optional[list[int]] = None
 
+
 class TaskStatusUpdate(BaseModel):
     status: Status
+
+
+# ---- QUIZ SCHEMA ----
+class QuizQuestion(BaseModel):
+    type: Literal["quiz"]  # Hardcoded type for the UI to read
+    question: str
+    correct_answer: str
+    options: list[str]  # List of 4 multiple choice options (including correct one)
+    explanation: str  # Why the answer is correct
+
+
+class QuizResponse(BaseModel):
+    title: str  # e.g., "Quiz based on Molecular_Bio_Lec2.pdf"
+    questions: list[QuizQuestion]
 
 
 # --- ASSESSMENT SCHEMAS ---
@@ -82,6 +106,7 @@ class AssessmentOut(BaseModel):
     deadline: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
 
+
 class AssessmentGroupOut(BaseModel):
     id: int
     name: str
@@ -91,6 +116,7 @@ class AssessmentGroupOut(BaseModel):
     assessments: list[AssessmentOut] = []
     model_config = ConfigDict(from_attributes=True)
 
+
 class AssessmentGroupCreate(BaseModel):
     name: str
     weight: float
@@ -98,17 +124,20 @@ class AssessmentGroupCreate(BaseModel):
     best_of: Optional[int] = None
     course_code: str
 
+
 class AssessmentGroupUpdate(BaseModel):
     name: Optional[str] = None
     weight: Optional[float] = None
     count: Optional[int] = None
     best_of: Optional[int] = None
 
+
 class AssessmentCreate(BaseModel):
     name: str
     max_score: Optional[float] = None
     deadline: Optional[datetime] = None
     assessment_group_id: int
+
 
 class AssessmentUpdate(BaseModel):
     name: Optional[str] = None
@@ -125,6 +154,7 @@ class CourseOut(BaseModel):
     a_cutoff: Optional[float] = None
     assessment_groups: list[AssessmentGroupOut] = []
     model_config = ConfigDict(from_attributes=True)
+
 
 class CourseCreate(BaseModel):
     name: str
@@ -143,10 +173,12 @@ class EnrollmentOut(BaseModel):
     course: CourseOut
     model_config = ConfigDict(from_attributes=True)
 
+
 class EnrollmentCreate(BaseModel):
     course_code: str
     target_grade: Optional[str] = None
     target_score: Optional[float] = None
+
 
 class EnrollmentUpdate(BaseModel):
     target_grade: Optional[str] = None
@@ -158,8 +190,10 @@ class StudentAssessmentCreate(BaseModel):
     assessment_id: int
     score: Optional[float] = None
 
+
 class StudentAssessmentUpdate(BaseModel):
     score: Optional[float] = None
+
 
 class StudentAssessmentOut(BaseModel):
     score: Optional[float] = None
@@ -172,6 +206,7 @@ class Flashcard(BaseModel):
     question: str
     answer: str
 
+
 class FlashcardResponse(BaseModel):
     flashcards: list[Flashcard]
 
@@ -182,6 +217,7 @@ class ResourceCreate(BaseModel):
     course_id: Optional[int] = None
     tags: str
 
+
 class ResourceResponse(BaseModel):
     id: int
     title: str
@@ -190,6 +226,7 @@ class ResourceResponse(BaseModel):
     user_id: str
     model_config = ConfigDict(from_attributes=True)
 
+<<<<<<< HEAD
 
 class QuizQuestion(BaseModel):
     type: Literal["quiz"] # Hardcoded type for the UI to read
@@ -206,3 +243,5 @@ class QuizResponse(BaseModel):
     questions: List[QuizQuestion]
     title: str
     questions: list[QuizQuestion]
+=======
+>>>>>>> 60862b4a8f7b35ffec34c7a106471420f9c599ae
