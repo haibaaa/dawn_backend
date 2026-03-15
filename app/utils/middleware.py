@@ -18,12 +18,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             token,
         )
 
-        if not user_res or not user_res.user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="invalid or expired token",
-            )
-
         return user_res.user  # returns the full supabase user object
     except Exception:
         raise HTTPException(
